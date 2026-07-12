@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: annotation-extractor
+    env: python
+    buildCommand: pip install -e .[ai] && pip install -r requirements-api.txt
+    startCommand: uvicorn api.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: ENV
+        value: production
+      - key: GEMINI_MODEL
+        value: gemini-3.1-flash-lite
+      - key: APP_API_KEY
+        generateValue: true
+      - key: GEMINI_API_KEY
+        sync: false

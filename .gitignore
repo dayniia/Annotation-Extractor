@@ -1,0 +1,28 @@
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+dist/
+build/
+.venv/
+venv/
+env/
+
+# Output files
+output/
+
+# OS
+.DS_Store
+Thumbs.db
+agents/skills/slopsec/
+output/highlight-extractor-agent-spec (1).md
+output/highlights_anki.txt
+output/highlights_md.md
+output/highlights_pdf.pdf
+output/highlights_notion.md

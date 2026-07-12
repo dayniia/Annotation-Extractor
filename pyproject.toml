@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "annotation-extractor"
+version = "0.1.0"
+description = "Extract and export highlight annotations from PDF and DOCX files."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+dependencies = [
+    "pymupdf>=1.23",
+    "python-docx>=1.1",
+]
+
+[project.optional-dependencies]
+ai = ["google-generativeai>=0.5"]
+
+[project.scripts]
+extract = "highlight_extractor.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["highlight_extractor*"]

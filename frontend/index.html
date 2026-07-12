@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Annotation Extractor</title>
+  <meta name="description" content="Extract and export highlight annotations from PDF and DOCX files — grouped by page, with color preserved." />
+  <link rel="stylesheet" href="/static/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🖊️</text></svg>" />
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- ── Header ────────────────────────────────────────────── -->
+  <header class="app-header">
+    <div class="logo-icon" aria-hidden="true">✦</div>
+    <h1>Annotation Extractor</h1>
+    <span class="tagline">PDF &amp; DOCX → structured annotations</span>
+  </header>
+
+  <main class="content-wrap">
+
+    <!-- ── Upload view ───────────────────────────────────────── -->
+    <section id="view-upload" role="region" aria-label="Upload document">
+      <div
+        id="upload-zone"
+        class="upload-zone"
+        role="button"
+        tabindex="0"
+        aria-label="Drop a PDF or DOCX file here, or click to browse"
+      >
+        <span class="upload-icon" aria-hidden="true">📄</span>
+        <h2>Drop your document here</h2>
+        <p>
+          Extract annotations from PDF or DOCX files.<br />
+          <span>Supports Acrobat, browser-saved PDFs, Word documents</span>
+        </p>
+        <div style="display:flex; justify-content:center; margin-top:8px;">
+          <button id="btn-browse" class="btn-browse" type="button">
+            📁 Browse files
+          </button>
+        </div>
+        <input id="file-input" type="file" accept=".pdf,.docx" aria-hidden="true" />
+      </div>
+      <div style="text-align:center; margin-top:14px;">
+        <button id="btn-demo" type="button" style="background:none; border:none; color:var(--text-muted); font-size:0.85rem; cursor:pointer; font-family:inherit; text-decoration:underline; text-decoration-style:dotted; padding:4px 8px;">
+          🧪 Try with demo file
+        </button>
+      </div>
+    </section>
+
+    <!-- ── Processing view ───────────────────────────────────── -->
+    <section id="view-processing" class="hidden" role="status" aria-live="polite">
+      <div class="processing-state">
+        <div class="spinner" aria-hidden="true"></div>
+        <p>Extracting annotations from <span id="processing-filename" class="file-name"></span>…</p>
+      </div>
+    </section>
+
+    <!-- ── Error view ────────────────────────────────────────── -->
+    <section id="view-error" class="hidden" role="alert">
+      <div class="error-banner">
+        <span class="error-icon" aria-hidden="true">⚠️</span>
+        <div>
+          <h3 id="error-title">Something went wrong</h3>
+          <p id="error-message">An unknown error occurred.</p>
+          <button id="btn-retry" class="btn-retry" type="button">Try another file</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Results view ──────────────────────────────────────── -->
+    <section id="view-results" class="hidden" role="region" aria-label="Extracted highlights">
+
+      <!-- Toolbar -->
+      <div class="results-toolbar">
+        <div>
+          <h2 id="result-filename" style="font-size:0.95rem; margin-bottom:2px"></h2>
+          <span id="result-count" class="count-badge"></span>
+        </div>
+        <div class="toolbar-spacer"></div>
+        <button id="btn-ai" class="btn-ai" type="button" title="Use Gemini to summarize the highlights">
+          ✨ Summarize with AI
+        </button>
+        <button id="btn-new-file" class="btn-new-file" type="button">
+          ↑ New file
+        </button>
+      </div>
+
+      <!-- Export bar -->
+      <div class="export-bar" role="group" aria-label="Export options">
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+          <label>Export as</label>
+          <div class="format-pills" role="radiogroup" aria-label="Format">
+            <button class="format-pill selected"  data-format="pdf"    role="radio" aria-checked="true"  type="button">PDF</button>
+            <button class="format-pill"           data-format="docx"   role="radio" aria-checked="false" type="button">Word</button>
+            <button class="format-pill"           data-format="md"     role="radio" aria-checked="false" type="button">Markdown</button>
+            <button class="format-pill"           data-format="anki"   role="radio" aria-checked="false" type="button">Anki</button>
+            <button class="format-pill"           data-format="notion" role="radio" aria-checked="false" type="button">Notion</button>
+          </div>
+
+          <label for="export-template" style="font-size: 0.9rem; margin-left: 8px;">Template:</label>
+          <select id="export-template" style="padding: 5px 8px; border-radius: 5px; border: 1px solid var(--border); font-size: 0.9rem;">
+            <option value="simple">Simple</option>
+            <option value="reading_notes">Reading Notes</option>
+          </select>
+        </div>
+        <button id="btn-download" class="btn-download" type="button">⬇ Download</button>
+      </div>
+
+      <!-- Filters row -->
+      <div class="filters-bar">
+        <div class="filter-group">
+          <label for="filter-type">Type</label>
+          <select id="filter-type"><option value="all">All Types</option></select>
+        </div>
+        <div class="filter-group">
+          <label for="filter-color">Color</label>
+          <select id="filter-color"><option value="all">All Colors</option></select>
+        </div>
+        <div class="filter-group" id="page-range-group">
+          <label for="filter-page-from">Pages</label>
+          <input type="number" id="filter-page-from" min="1" placeholder="From" style="width:60px; padding:4px 6px; border:1px solid var(--border); border-radius:5px; font-size:0.9rem;" />
+          <span style="font-size:0.85rem; color: var(--text-muted);">–</span>
+          <input type="number" id="filter-page-to" min="1" placeholder="To" style="width:60px; padding:4px 6px; border:1px solid var(--border); border-radius:5px; font-size:0.9rem;" />
+        </div>
+        <!-- DOCX-only formatting toggle (hidden by default, shown when source is DOCX) -->
+        <div class="filter-group" id="docx-formatting-group" style="display:none; margin-left:auto;">
+          <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+            <input type="checkbox" id="include-formatting-chk" />
+            Include formatting as annotations
+          </label>
+        </div>
+      </div>
+
+      <!-- Highlights list (rendered by JS) -->
+      <div id="highlights-container" aria-live="polite"></div>
+
+      <!-- AI Summary container (rendered by JS, hidden until generated) -->
+      <div id="ai-summary-container" class="hidden">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 12px; flex-wrap:wrap; gap:8px;">
+          <h3 style="margin:0;">✨ Document Summary</h3>
+          <div style="display:flex; gap:8px;">
+            <button id="btn-copy-summary" type="button" style="padding:6px 14px; border:1px solid var(--border); background:var(--bg-surface); border-radius:5px; cursor:pointer; font-size:0.9rem;">📋 Copy</button>
+            <button id="btn-download-summary" type="button" style="padding:6px 14px; border:1px solid var(--border); background:var(--accent); color:white; border-radius:5px; cursor:pointer; font-size:0.9rem;">⬇ Download PDF</button>
+          </div>
+        </div>
+        <p id="ai-summary-text" style="line-height:1.7; color:var(--text-secondary); white-space:pre-wrap;"></p>
+      </div>
+
+    </section>
+
+  </main>
+</div>
+
+<script src="/static/app.js?v=11.3"></script>
+</body>
+</html>
