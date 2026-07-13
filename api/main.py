@@ -18,7 +18,11 @@ Run with:
 from __future__ import annotations
 
 import os
+import sys
 import tempfile
+
+# Ensure Vercel can find the highlight_extractor package which is in the parent directory
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Load .env automatically (no-op if python-dotenv is not installed)
 try:

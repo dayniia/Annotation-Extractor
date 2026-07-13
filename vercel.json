@@ -1,4 +1,9 @@
 {
+  "functions": {
+    "api/main.py": {
+      "includeFiles": "{frontend/**,highlight_extractor/**}"
+    }
+  },
   "builds": [
     {
       "src": "api/main.py",
